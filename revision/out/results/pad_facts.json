@@ -1,0 +1,55 @@
+{
+ "n_total": 2298,
+ "n_patients": 1373,
+ "n_lesions": 1891,
+ "diag_counts": {
+  "BCC": 845,
+  "ACK": 730,
+  "NEV": 244,
+  "SEK": 235,
+  "SCC": 192,
+  "MEL": 52
+ },
+ "n_mapped": 2106,
+ "n_excluded": 192,
+ "mapped_counts": {
+  "BCC": 845,
+  "AKIEC": 730,
+  "NV": 244,
+  "BKL": 235,
+  "MEL": 52
+ },
+ "n_patients_mapped": 1297,
+ "biopsy_proven_frac": 0.5460588793922128,
+ "fitz_counts": {
+  "nan": 804,
+  "2.0": 750,
+  "3.0": 347,
+  "1.0": 137,
+  "4.0": 59,
+  "5.0": 8,
+  "6.0": 1
+ },
+ "ham_test_counts": {
+  "NV": 669,
+  "BKL": 110,
+  "MEL": 102,
+  "BCC": 50,
+  "AKIEC": 28,
+  "VASC": 17,
+  "DF": 14
+ },
+ "native_res_median": [
+  775.0,
+  774.5
+ ],
+ "native_res_min": [
+  147,
+  147
+ ],
+ "native_res_max": [
+  3476,
+  3474
+ ],
+ "n_gt_1024": 759
+}

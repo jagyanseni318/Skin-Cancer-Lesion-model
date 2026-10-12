@@ -1,0 +1,37 @@
+{
+ "uniform": {
+  "rho_area": 1.0,
+  "mean_small": 0.028259474110152377,
+  "mean_medium": 0.10242305391778549,
+  "mean_large": 0.3455805893246781
+ },
+ "diffuse_random_location(sigma=60)": {
+  "rho_area": 0.9541604970669456,
+  "mean_small": 0.04962213567801212,
+  "mean_medium": 0.17056031990796328,
+  "mean_large": 0.4772263575754286
+ },
+ "concentrated_random_location(sigma=12)": {
+  "rho_area": 0.5897140246715961,
+  "mean_small": 0.04472427145265673,
+  "mean_medium": 0.16394168019083447,
+  "mean_large": 0.48353181768260417
+ },
+ "lesion_centred_concentrated(sigma=12)": {
+  "rho_area": 0.9511789548766966,
+  "mean_small": 0.6963258985105523,
+  "mean_medium": 0.9789406260335066,
+  "mean_large": 0.999338853820472
+ },
+ "CAM-resolution_lesion_oracle": {
+  "rho_area": 0.9867435709614146,
+  "mean_small": 0.4315698642871882,
+  "mean_medium": 0.6587905642886956,
+  "mean_large": 0.8063637651392543
+ },
+ "n_by_stratum": {
+  "small": 76,
+  "medium": 240,
+  "large": 674
+ }
+}
