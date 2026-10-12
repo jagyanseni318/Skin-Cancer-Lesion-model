@@ -1,0 +1,27 @@
+# Exact package versions used to produce the results reported in the manuscript
+# (Python 3.12.2, Windows, single NVIDIA RTX 4050 Laptop GPU, CUDA 11.8, mixed precision).
+# torch/torchvision wheels are the +cu118 CUDA build; on CPU-only or other CUDA
+# versions, install the matching build from https://pytorch.org/get-started/locally/
+# instead of the pinned line below.
+
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+--extra-index-url https://download.pytorch.org/whl/cu118
+
+numpy==2.3.5
+pandas==3.0.1
+scipy==1.17.1
+scikit-learn==1.8.0
+statsmodels==0.14.6
+
+opencv-python-headless==5.0.0.93
+pillow==11.2.1
+albumentations==2.0.8
+
+grad-cam==1.5.7          # pytorch_grad_cam (Grad-CAM++ implementation)
+matplotlib==3.10.8
+
+# Only required to (re)generate the manuscript .docx / audit tables from
+# revision/out/results/*.json,*.csv (scripts in this folder beginning with
+# ms_ and build_). Not required to reproduce any numerical result.
+python-docx==1.2.0
