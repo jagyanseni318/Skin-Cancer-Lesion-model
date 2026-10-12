@@ -2,7 +2,7 @@
 
 This folder is intentionally empty of image data (too large to distribute with
 the code). Download the public datasets below and place them exactly as shown;
-`revision/common.py` reads these paths.
+`model/common.py` reads these paths.
 
 ## HAM10000
 
@@ -36,4 +36,4 @@ data/PAD-UFES-20/images/*.png
 
 No other data is required. Everything downstream (preprocessing caches,
 trained weights, per-seed logits/saliency maps, figures, tables) is produced
-by the scripts in `revision/` from these two public sources.
+by the scripts in `model/` from these two public sources.

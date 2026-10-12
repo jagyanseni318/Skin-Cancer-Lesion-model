@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Rectangle
 from PIL import Image
 from pathlib import Path
-OUT = Path(__file__).resolve().parent.parent / 'revision' / 'out'
+OUT = Path(__file__).resolve().parent / 'out'
 PD = OUT / 'patent'; PD.mkdir(exist_ok=True, parents=True)
 plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 8})
 

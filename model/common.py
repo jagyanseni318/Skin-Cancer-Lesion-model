@@ -8,8 +8,8 @@ from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / 'data'
-OUT = ROOT / 'revision' / 'out'
-CACHE = ROOT / 'revision' / 'cache'
+OUT = Path(__file__).resolve().parent / 'out'
+CACHE = Path(__file__).resolve().parent / 'cache'
 OUT.mkdir(exist_ok=True, parents=True); CACHE.mkdir(exist_ok=True, parents=True)
 CLASSES = ['AKIEC', 'BCC', 'BKL', 'DF', 'MEL', 'NV', 'VASC']
 C2I = {c: i for i, c in enumerate(CLASSES)}

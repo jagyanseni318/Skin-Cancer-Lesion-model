@@ -22,6 +22,6 @@ grad-cam==1.5.7          # pytorch_grad_cam (Grad-CAM++ implementation)
 matplotlib==3.10.8
 
 # Only required to (re)generate the manuscript .docx / audit tables from
-# revision/out/results/*.json,*.csv (scripts in this folder beginning with
+# model/out/results/*.json,*.csv (scripts in this folder beginning with
 # ms_ and build_). Not required to reproduce any numerical result.
 python-docx==1.2.0
