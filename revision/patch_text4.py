@@ -1,0 +1,52 @@
+def patch(fn, pairs):
+    s = open(fn, encoding='utf-8').read()
+    for a, b in pairs:
+        assert a in s, (fn, a[:80])
+        s = s.replace(a, b)
+    open(fn, 'w', encoding='utf-8').write(s)
+
+
+s = open('ms_results_xai.py', encoding='utf-8').read()
+
+# ---- faithfulness paragraph 1
+i = s.index('    M.p(f"With the mean-image baseline, insertion of Grad-CAM++-ranked')
+j = s.index('    M.table([\'Baseline\', \'Deletion AUC: Grad-CAM++ order\'')
+new1 = '''    ig_m = ac('faithfulness', 'mean', 'IG', 'median'); dg_m = ac('faithfulness', 'mean', 'DG', 'median'); ig_f = 100 * ac('faithfulness', 'mean', 'frac_IG_pos'); dg_f = 100 * ac('faithfulness', 'mean', 'frac_DG_pos')
+    gap_les = ac('faithfulness', 'mean', 'DG_les', 'median'); ig_p = ac('faithfulness', 'mean', 'wilcoxon_IG_p')
+    M.p(f"__Insertion.__ With the mean-image baseline, inserting Grad-CAM++-ranked patches first raised the predicted-class probability far more than inserting patches in random order in every seed (median IG {ig_m.min():.3f} to {ig_m.max():.3f}; positive in {ig_f.min():.0f}–{ig_f.max():.0f}% of images; Wilcoxon p < 10⁻¹⁵⁰ in all {K} seeds; reference seed: median IG = {mi(fm['IG'])}, IQR {fm['IG']['q1']:.3f}–{fm['IG']['q3']:.3f}). __Deletion.__ Deletion gave a different answer: the median deletion gain was positive in only {cnt(dg_m, lambda v: v > 0)}/{K} seeds (median DG {dg_m.min():+.3f} to {dg_m.max():+.3f}; reference seed {mi(fm['DG'])}, positive in {100 * fm['frac_DG_pos']:.0f}% of images) and was negative in the others, that is, removing the most salient patches first lowered the probability __less__ than removing random patches (the Wilcoxon test was significant, {'in both directions' if cnt(dg_m, lambda v: v < 0) > 0 and cnt(dg_m, lambda v: v > 0) > 0 else 'in one direction'}, in every seed). With a blurred baseline (evaluated for the reference seed only) the deletion gain was {'negative' if F['blur']['DG']['median'] < 0 else 'positive'} (median DG = {mi(F['blur']['DG'])}; positive in {100 * F['blur']['frac_DG_pos']:.0f}% of images) whereas the insertion gain remained positive (median IG = {mi(F['blur']['IG'])}). The deletion evidence therefore does not support faithfulness, varies between independently trained models and depends on the baseline; the insertion evidence is consistent and moderate in size. The disagreement between the two is what removal-based metrics can produce when perturbed images are off the training distribution [@hooker2019,rong2022], and it should not be resolved in favour of the more flattering metric. __Oracle-mask orderings.__ Deleting lesion-covered patches first reduced the probability far more than deleting background patches first in every seed (median AUC difference {gap_les.min():.3f} to {gap_les.max():.3f}; reference seed {mi(fm['del_lesion_first'])} vs {mi(fm['del_bg_first'])}, {fp(fm['wilcoxon_DG_les_p'])}), so in these perturbation tests the prediction depends much more on the lesion than on its surroundings. Overall, the perturbation tests show that the maps carry class-relevant information (insertion) but do not show that the patches ranked most important are those whose removal hurts the prediction most (deletion).")
+'''
+s = s[:i] + new1 + s[j:]
+
+# ---- localization vs faithfulness paragraph
+i = s.index('    M.p(f"__Does good localization imply faithfulness?__')
+j = s.index('    M.p(f"Misclassified images had a larger deletion gain')
+new2 = '''    r_ig = ac('faithfulness', 'mean', 'rho_lsas_IG', 'rho'); r_dg = ac('faithfulness', 'mean', 'rho_lsas_DG', 'rho'); e_ig = ac('faithfulness', 'mean', 'rho_eshuf_IG', 'rho'); e_dg = ac('faithfulness', 'mean', 'rho_eshuf_DG', 'rho')
+    M.p(f"__Does good localization imply faithfulness?__ Raw LSAS did not. Its correlation with the deletion gain was negative in every seed (ρ = {r_dg.min():+.2f} to {r_dg.max():+.2f}; reference seed {fm['rho_lsas_DG']['rho']:+.3f}) and with the insertion gain small and of inconsistent sign (ρ = {r_ig.min():+.2f} to {r_ig.max():+.2f}; reference seed {fm['rho_lsas_IG']['rho']:+.3f}, {fp(fm['rho_lsas_IG']['p'])}), because large lesions receive high LSAS by geometry and also have low deletion gain (reference seed ρ(area, DG) = {fm['rho_area_DG']['rho']:+.2f}). Area-adjusted localization tracked insertion faithfulness moderately and consistently: excess LSAS correlated with the insertion gain at ρ = {e_ig.min():+.2f} to {e_ig.max():+.2f} (positive in {cnt(e_ig, lambda v: v > 0)}/{K} seeds), whereas its correlation with the deletion gain was {e_dg.min():+.2f} to {e_dg.max():+.2f} (positive in {cnt(e_dg, lambda v: v > 0)}/{K} seeds, near zero in some). The pixel-wise localization AUC behaved like excess LSAS (reference seed ρ with IG = {fm['rho_locauc_IG']['rho']:+.3f}). Partial correlations of raw LSAS with the gains controlling for lesion area were {fm['partial_lsas_DG_area']['rho']:+.2f} (DG) and {fm['partial_lsas_IG_area']['rho']:+.2f} (IG) in the reference seed. {('Under the blurred baseline (reference seed) the deletion gain was unrelated to excess LSAS (ρ = ' + format(F['blur']['rho_eshuf_DG']['rho'], '+.3f') + ') whereas the insertion relationship persisted (ρ = ' + format(F['blur']['rho_eshuf_IG']['rho'], '+.3f') + ').') if 'blur' in F else ''}")
+'''
+s = s[:i] + new2 + s[j:]
+
+# misclassified faith paragraph: add cross-seed counts
+s = s.replace("that is, maps of wrong predictions were less able to reconstruct the prediction from a subset of the image.",
+              "that is, maps of wrong predictions were less able to reconstruct the prediction from a subset of the image (insertion gain lower for misclassified images with p < 0.05 in {cnt(ac('faithfulness', 'mean', 'IG_corr_vs_incorr', 'p'), lambda v: v < 0.05)}/{K} seeds).")
+
+# ---- stability section
+i = s.index("    M.p(f\"Across 300 test images with 15 MC-dropout passes each")
+j = s.index("def sec_skin")
+new3 = '''    st_m = ac('sts', 'median'); st_u = 100 * ac('sts', 'frac_below_05'); r_e = ac('sts', 'rho_eshuf', 'rho'); r_l = ac('sts', 'rho_lsas', 'rho'); r_a = ac('sts', 'rho_area', 'rho'); r_d = ac('sts', 'rho_DG', 'rho'); r_c = ac('sts', 'rho_conf', 'rho')
+    M.p(f"Across 300 test images with 15 MC-dropout passes each, median STS was {s['median']:.3f} in the reference seed (IQR {s['q1']:.3f}–{s['q3']:.3f}; mean {s['mean']:.3f}) and {st_m.min():.3f} to {st_m.max():.3f} across the {K} seeds; {s['n_below_05']} images ({100 * s['frac_below_05']:.1f}%) fell below the 0.5 instability threshold in the reference seed ({st_u.min():.1f}–{st_u.max():.1f}% across seeds). MC-dropout predictions agreed with the deterministic prediction in {100 * s['mc_agree_mean']:.0f}% of passes on average (reference seed). Stability was moderately to strongly related to area-adjusted localization in every seed (Spearman ρ with excess LSAS = {r_e.min():+.2f} to {r_e.max():+.2f}; reference seed {s['rho_eshuf']['rho']:+.3f}, {fp(s['rho_eshuf']['p'])}), but only weakly and negatively to raw LSAS (ρ = {r_l.min():+.2f} to {r_l.max():+.2f}); it was also negatively related to lesion area (ρ = {r_a.min():+.2f} to {r_a.max():+.2f}), so part of the relation with excess LSAS may reflect shared dependence on lesion size, and the two should not be read as independent. Its relation to calibrated confidence was inconsistent in sign (ρ = {r_c.min():+.2f} to {r_c.max():+.2f}) and its relation to the deletion gain ranged from ρ = {r_d.min():+.2f} to {r_d.max():+.2f}. Stability differed between correct and misclassified images in {cnt(ac('sts', 'corr_vs_incorr', 'p'), lambda v: v < 0.05)}/{K} seeds (reference seed {fp(s['corr_vs_incorr']['p'])}). Because the perturbation acts only through the dropout layers of the head, high stability is expected and does not imply faithfulness: STS measures reproducibility under one kind of stochastic change. The original finding that stability and localization are largely separate dimensions (ρ = −0.157 with raw LSAS) is therefore only partly supported: it holds for raw LSAS but not for area-adjusted localization.")
+
+
+'''
+s = s[:i] + new3 + s[j:]
+open('ms_results_xai.py', 'w', encoding='utf-8').write(s)
+
+# ---- discussion / conclusion in build_manuscript
+patch('build_manuscript.py', [
+    ("Insertion of Grad-CAM++-ranked patches beat random insertion in {100 * fm['frac_IG_pos']:.0f}% of images, but deletion beat random deletion in only {100 * fm['frac_DG_pos']:.0f}% (mean-image baseline) and in {100 * R['faithfulness']['blur']['frac_DG_pos']:.0f}% with a blurred baseline if the reference seed is taken. This asymmetry is common for removal-based metrics and reflects off-distribution artefacts as much as importance [@hooker2019,rong2022], so the evidence for faithfulness is best described as moderate and metric-dependent.",
+     "Insertion of Grad-CAM++-ranked patches beat random insertion in {frac_ig.min() * 100:.0f}–{frac_ig.max() * 100:.0f}% of images in every seed, but deletion of the top-ranked patches was less damaging than random deletion in {int((tau('faithfulness', 'mean', 'DG', 'median') < 0).sum())} of {K} seeds (median deletion gain {tau('faithfulness', 'mean', 'DG', 'median').min():+.2f} to {tau('faithfulness', 'mean', 'DG', 'median').max():+.2f}) and was negative also with a blurred baseline in the reference seed. Disagreement between insertion and deletion is a recognised property of removal-based metrics, which reflect off-distribution artefacts as much as importance [@hooker2019,rong2022], so the evidence for faithfulness is best described as moderate on insertion, absent on deletion, and dependent on the training run and baseline."),
+    ("Because raw LSAS correlates with lesion size, it correlated negatively with the deletion gain and not at all with the insertion gain; only after removing geometry did localization track insertion faithfulness.",
+     "Because raw LSAS correlates with lesion size, it correlated negatively with the deletion gain and inconsistently with the insertion gain; only after removing geometry did localization track insertion faithfulness (ρ = {rho_e_ig.min():.2f}–{rho_e_ig.max():.2f}), and its relation to deletion was weak."),
+    ("localization, faithfulness, confidence and stability capture different things and agree only weakly;",
+     "localization, faithfulness, confidence and stability capture different things and agree only partially (area-adjusted localization tracks insertion faithfulness and saliency stability moderately, but not confidence or deletion faithfulness);"),
+])
+print('ok')

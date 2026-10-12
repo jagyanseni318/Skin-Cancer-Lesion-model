@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skin Lesion AI Research Predictor</title>
+<style>
+:root { --bg:#eef3f9; --surface:#ffffff; --surface-alt:#f7f9fc; --ink:#182332; --ink2:#58697f; --line:#dbe2ec; --accent:#1f6feb; --accent-strong:#154fb2; --accent-soft:#eaf2ff; --success:#1d9b67; --success-soft:#eafaf3; --warn-bg:#fff7dd; --warn-line:#d9ab3d; --err-bg:#ffeceb; --err-line:#d7655f; --notice-bg:#122a42; --notice-ink:#edf5ff; --shadow: 0 18px 40px rgba(17, 32, 59, 0.08); }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#111a25; --surface:#182532; --surface-alt:#1d2a38; --ink:#edf4ff; --ink2:#a7b8cc; --line:#2d3f53; --accent:#72aaf7; --accent-strong:#a9cafc; --accent-soft:#11223a; --success:#6ad8a2; --success-soft:#122d24; --warn-bg:#362d1d; --warn-line:#d0a949; --err-bg:#3c2323; --err-line:#e4877e; --notice-bg:#0d1d30; --notice-ink:#dfeeff; }
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:linear-gradient(180deg, var(--bg) 0%, #edf3fb 100%); color:var(--ink); line-height:1.45; padding-bottom:90px; }
+header { background:linear-gradient(135deg, #0f2742 0%, #163c63 38%, #1b4c7a 100%); color:#f6fbff; border-bottom:1px solid rgba(255,255,255,0.08); padding:22px 20px 18px; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08); }
+header h1 { margin:0; font-size:clamp(1.2rem, 2vw, 1.7rem); letter-spacing:-0.02em; }
+header p { margin:8px 0 0; color:rgba(237,245,255,0.8); font-size:.92rem; max-width:780px; }
+main { max-width:1220px; margin:0 auto; padding:24px 20px 18px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px 18px 16px; margin-bottom:16px; box-shadow:var(--shadow); }
+.card h2 { font-size:1.05rem; margin:0 0 12px; letter-spacing:-0.02em; }
+.banner { background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:12px; padding:12px 16px; margin-bottom:16px; }
+.banner.err { background:var(--err-bg); border-color:var(--err-line); }
+.cols { display:grid; grid-template-columns:minmax(260px, 310px) minmax(0, 1fr); gap:18px; align-items:start; }
+@media (max-width:860px) { .cols { grid-template-columns:1fr; } }
+.upload-panel { display:flex; flex-direction:column; gap:14px; position:sticky; top:14px; overflow:hidden; }
+@media (max-width:860px) { .upload-panel { position:static; } }
+.upload-panel.processing { position:relative; }
+.upload-panel.processing::after { content:""; position:absolute; inset:0; background:rgba(11, 19, 28, 0.42); backdrop-filter:blur(1.5px); border-radius:18px; pointer-events:none; }
+.upload-panel.processing::before { content:""; position:absolute; left:50%; top:50%; width:34px; height:34px; margin:-17px 0 0 -17px; border:3px solid rgba(255,255,255,0.35); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; z-index:1; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.upload-panel form { display:flex; flex-direction:column; gap:12px; }
+.upload-panel label { color:var(--ink2); font-size:.92rem; }
+input[type=file] { width:100%; padding:16px 14px; border:2px dashed var(--line); border-radius:12px; background:linear-gradient(180deg, var(--surface-alt), var(--surface)); color:var(--ink); font:inherit; transition:border-color .2s ease, box-shadow .2s ease; }
+input[type=file]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(31,111,235,0.12); }
+button { background:linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%); color:#fff; border:0; border-radius:12px; padding:11px 18px; font:inherit; font-weight:700; cursor:pointer; margin-top:2px; box-shadow:0 10px 20px rgba(31,111,235,0.22); transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
+button:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 14px 26px rgba(31,111,235,0.26); }
+button:disabled { opacity:.55; cursor:not-allowed; box-shadow:none; }
+a.btn { display:inline-block; border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:8px 14px; text-decoration:none; font-weight:700; font-size:.9rem; background:var(--accent-soft); }
+.result-card { background:linear-gradient(180deg, rgba(31,111,235,0.04), rgba(31,111,235,0.01)); }
+.status-strip { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--surface-alt); border:1px solid var(--line); color:var(--ink2); font-weight:600; margin-bottom:14px; }
+.status-strip.idle { background:#f3f7fb; color:var(--ink2); }
+.status-strip.running { background:rgba(31,111,235,0.08); border-color:rgba(31,111,235,0.2); color:var(--accent-strong); }
+.status-strip.success { background:var(--success-soft); border-color:rgba(29,155,103,0.2); color:var(--success); }
+.status-dot { width:10px; height:10px; border-radius:50%; background:currentColor; opacity:0.9; }
+.status-strip.running .status-dot { box-shadow:0 0 0 0 rgba(31,111,235,0.4); animation:pulse 1.5s infinite; }
+@keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(31,111,235,0.4); } 70% { box-shadow:0 0 0 10px rgba(31,111,235,0); } 100% { box-shadow:0 0 0 0 rgba(31,111,235,0); } }
+.eyebrow { display:inline-block; padding:5px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent-strong); font-size:.76rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+.result-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.result-headline { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; }
+.big { font-size:clamp(2rem, 3vw, 2.8rem); font-weight:800; margin:0; letter-spacing:-0.04em; }
+.tag { display:inline-flex; align-items:center; min-height:32px; padding:6px 10px; border-radius:999px; background:var(--success-soft); color:var(--success); font-weight:700; font-size:.88rem; }
+.sub { color:var(--ink2); font-size:.9rem; }
+.pct { font-size:clamp(2.1rem, 3vw, 3.1rem); font-weight:800; color:var(--accent); line-height:1; letter-spacing:-0.04em; }
+.metric-row { display:grid; grid-template-columns:repeat(2, minmax(180px, 1fr)); gap:14px; margin-top:12px; }
+.metric { padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--surface-alt); }
+.metric-label { display:block; color:var(--ink2); font-size:.76rem; text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+.metric-value { font-weight:700; }
+.insight { padding:12px 14px; background:var(--surface-alt); border:1px solid var(--line); border-radius:12px; margin-top:12px; }
+.table-wrap { overflow:auto; }
+table { border-collapse:collapse; width:100%; font-size:.92rem; }
+th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+th { color:var(--ink2); font-size:.74rem; text-transform:uppercase; letter-spacing:.04em; }
+td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+tr.top td { font-weight:700; background:rgba(31,111,235,0.03); }
+td.bar { width:36%; min-width:150px; }
+progress { display:block; width:100%; min-width:140px; height:12px; accent-color:var(--accent); }
+.panels { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
+@media (max-width:640px) { .panels { grid-template-columns:1fr; } }
+.panels figure { margin:0; background:var(--surface-alt); border:1px solid var(--line); border-radius:12px; padding:8px; }
+.panels img { width:100%; height:auto; border-radius:8px; border:1px solid var(--line); display:block; background:#000; }
+figcaption { font-size:.84rem; color:var(--ink2); margin-top:6px; }
+.scale { height:10px; border-radius:5px; margin-top:8px; background:linear-gradient(90deg,#000004,#420a68,#932667,#dd513a,#fca50a,#fcffa4); }
+.scale-labels { display:flex; justify-content:space-between; font-size:.76rem; color:var(--ink2); margin-top:2px; }
+dl { display:grid; grid-template-columns:max-content 1fr; gap:3px 14px; font-size:.86rem; margin:0; }
+dt { color:var(--ink2); }
+dd { margin:0; overflow-wrap:anywhere; }
+details { cursor:pointer; }
+details summary { cursor:pointer; font-weight:700; }
+summary::-webkit-details-marker { display:none; }
+.disclaimer { position:fixed; left:0; right:0; bottom:0; background:var(--notice-bg); color:var(--notice-ink); padding:9px 20px; font-size:.8rem; box-shadow:0 -8px 24px rgba(0,0,0,0.12); }
+@media (max-width:560px) { .metric-row { grid-template-columns:1fr; } .disclaimer { font-size:.75rem; padding:10px 14px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Skin Lesion AI Research Predictor</h1>
+  <p>Upload one image; the frozen study model returns a predicted class with its model probability. Research use only.</p>
+</header>
+<main>
+{% if not state.ok %}
+  <div class="banner err" role="alert"><strong>{{ state.message }}</strong> AI inference is blocked. Run <code>python -m inference.verify_model</code> to see which check failed.</div>
+{% endif %}
+
+<div class="cols">
+  <section class="card upload-panel">
+    <h2>1. Upload an image</h2>
+    <div class="status-strip {{ status or 'idle' }}" id="modelStatus" aria-live="polite"><span class="status-dot"></span><span id="modelStatusText">{% if status == 'running' %}Processing image… running frozen model{% elif status == 'success' %}Model completed successfully{% else %}Awaiting image upload{% endif %}</span></div>
+    <form id="predictForm" method="post" enctype="multipart/form-data">
+      <label for="image">JPEG or PNG, up to 15 MB. The image is processed in memory on this computer and is not stored or sent anywhere.</label>
+      <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+      <button id="runModelBtn" type="submit"{% if not state.ok %} disabled{% endif %}>Run frozen model</button>
+    </form>
+    {% if upload_error %}<div class="banner err" role="alert">{{ upload_error }}</div>{% endif %}
+    <p class="sub">Best suited to dermoscopic images like those the model was trained on.</p>
+  </section>
+
+  <div>
+  {% if result %}
+    {% if result.error %}
+      <section class="card"><div class="banner err" role="alert"><strong>{{ result.error }}</strong></div>
+        {% if result.quality.reasons %}<ul>{% for r in result.quality.reasons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+        <p class="sub">No AI prediction was produced for this image.</p></section>
+    {% else %}
+      {% set pr = result.prediction %}
+      <section class="card result-card">
+        <div class="result-header">
+          <div class="eyebrow">AI prediction</div>
+          <div class="tag">{{ result.top_name }}</div>
+        </div>
+        <div class="result-headline">
+          <div class="big">{{ pr.predicted_class }}</div>
+          <span class="sub">Predicted class</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric">
+            <span class="metric-label">Model probability</span>
+            <div class="pct">{{ '%.1f'|format(pr.predicted_probability * 100) }}%</div>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Lead over runner-up</span>
+            <div class="metric-value">{{ '%.1f'|format(result.margin * 100) }} pts</div>
+          </div>
+        </div>
+        <div class="insight">
+          <p>
+            The next most probable class is {{ result.second.code }} ({{ result.second.name }}) at {{ '%.1f'|format(result.second.p * 100) }}%;
+            the predicted class leads it by {{ '%.1f'|format(result.margin * 100) }} percentage points.
+            {% if result.spread %}<strong>No class has more than half of the model probability, so the predicted class is only weakly supported by the model.</strong>{% endif %}
+          </p>
+          <p class="sub">A model probability is how strongly the model favours a class for this image. It is not the probability that the person has that condition, and it is not a diagnosis.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Model probability for each class</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Class</th><th>Description</th><th class="num">Probability</th><th></th></tr></thead>
+            <tbody>
+            {% for r in result.ranked %}
+              <tr{% if r.is_top %} class="top"{% endif %}><td>{{ r.code }}</td><td>{{ r.name }}</td><td class="num">{{ '%.1f'|format(r.p * 100) }}%</td>
+                  <td class="bar"><progress max="1" value="{{ '%.4f'|format(r.p) }}" aria-label="{{ r.code }} model probability"></progress></td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="sub">The seven probabilities sum to 100%. Calibration: {{ info.calibration_method }} (T = {{ '%.4f'|format(info.temperature) }}), fitted on HAM10000 only.</p>
+      </section>
+
+      {% if info.binary_confirmed %}
+      <section class="card">
+        <h2>Benign / malignant research flag</h2>
+        <p>Model probability of the malignant group ({{ info.malignant_group|join(', ') }}): <strong>{{ '%.1f'|format(pr.p_malignant * 100) }}%</strong>.
+           Research threshold {{ '%.3f'|format(info.threshold) }}: {% if pr.above_threshold %}<strong>above threshold</strong>{% else %}below threshold{% endif %}.</p>
+        <p class="sub">The threshold gives 90% sensitivity on HAM10000 validation images. It is a research flag, not a clinical cut-off, and has not been validated on clinical images.</p>
+      </section>
+      {% else %}
+      <section class="card"><h2>Benign / malignant research flag</h2>
+        <p class="sub">Not shown: the grouping of the seven classes into benign and malignant has not yet been confirmed by the investigator (see the model manifest).</p></section>
+      {% endif %}
+
+      <section class="card">
+        <h2>Model explanation ({{ info.gradcam_method }})</h2>
+        {% if result.images %}
+        <div class="panels">
+          <figure><img src="{{ result.images.original }}" alt="Uploaded image"><figcaption><strong>Original image</strong></figcaption></figure>
+          <figure><img src="{{ result.images.overlay }}" alt="Grad-CAM++ overlay with outline"><figcaption><strong>Overlay</strong> — heat map over the image; the cyan outline encloses the area holding the upper half of the map's range.</figcaption></figure>
+          <figure class="wide"><img src="{{ result.images.heatmap }}" alt="Grad-CAM++ heat map with outline"><div class="scale"></div><div class="scale-labels"><span>less contribution</span><span>more contribution to {{ pr.predicted_class }}</span></div><figcaption><strong>Heat map</strong> — the Grad-CAM++ map on its own.</figcaption></figure>
+        </div>
+        <p class="sub"><strong>{{ explanation_notice }}</strong> {{ explanation_detail }} In the accompanying study these maps were only slightly more lesion-aligned than a shuffled-map control, so they show where the model looked, not where a lesion or a condition is. The map is computed on a coarse 7×7 grid of the last convolution stage; for viewing only, it is enlarged and smoothed, and the overlay lets the original image show through where the map is low. This changes the picture, not the map values, the model probabilities or the research output.</p>
+        {% else %}<p class="sub">{{ result.explanation_error }}</p>{% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Cautions on this result</h2>
+        <ul>
+          <li>{{ external_caution }}</li>
+          <li>Image quality check passed (version {{ result.quality.thresholds_version }}): {{ result.quality.metrics.width }}×{{ result.quality.metrics.height }} px.</li>
+          <li>The output does not use patient history, other images, or a clinician's examination.</li>
+        </ul>
+        {% if json_uri %}<a class="btn" href="{{ json_uri }}" download="research_output.json">Download research output (JSON)</a>{% endif %}
+      </section>
+    {% endif %}
+  {% else %}
+    <section class="card"><h2>2. Research output</h2><p class="sub">The predicted class, its model probability and the Grad-CAM++ explanation appear here after you run the model.</p></section>
+  {% endif %}
+  </div>
+</div>
+
+{% if info %}
+<section class="card">
+  <details>
+    <summary>Frozen model details (from model/model_manifest.json)</summary>
+    <dl>
+      <dt>Model</dt><dd>{{ info.name }}</dd>
+      <dt>Version</dt><dd>{{ info.version }} (frozen: {{ 'yes' if info.frozen else 'no' }}, created {{ info.created_at }})</dd>
+      <dt>Checkpoint SHA-256</dt><dd>{{ info.checkpoint_sha256 }}</dd>
+      <dt>Preprocessing</dt><dd>{{ info.preprocessing_version }}</dd>
+      <dt>Explanation</dt><dd>{{ info.gradcam_method }}, layer {{ info.gradcam_layer }}</dd>
+      <dt>Binary grouping</dt><dd>malignant: {{ info.malignant_group|join(', ') }}; benign: {{ info.benign_group|join(', ') }} — {% if info.binary_confirmed %}confirmed by the investigator{% else %}awaiting investigator confirmation{% endif %}</dd>
+    </dl>
+  </details>
+</section>
+{% endif %}
+</main>
+<div class="disclaimer"><strong>RESEARCH USE ONLY</strong> &nbsp; {{ short_notice }}</div>
+<script>
+  (function() {
+    const form = document.getElementById('predictForm');
+    const status = document.getElementById('modelStatus');
+    const statusText = document.getElementById('modelStatusText');
+    const button = document.getElementById('runModelBtn');
+
+    function setStatus(type, text) {
+      if (!status || !statusText) return;
+      status.className = 'status-strip ' + type;
+      statusText.textContent = text;
+      const panel = document.querySelector('.upload-panel');
+      if (panel) {
+        panel.classList.toggle('processing', type === 'running');
+      }
+    }
+
+    const serverStatus = '{{ status or "idle" }}';
+    if (serverStatus === 'success') {
+      setStatus('success', 'Model completed successfully');
+    } else if (serverStatus === 'running') {
+      setStatus('running', 'Processing image… running frozen model');
+    } else {
+      setStatus('idle', 'Awaiting image upload');
+    }
+
+    if (form) {
+      form.addEventListener('submit', function() {
+        const fileInput = form.querySelector('input[type="file"]');
+        const hasFile = fileInput && fileInput.files.length > 0;
+        if (!hasFile) {
+          setStatus('idle', 'Select an image before running the model');
+          return;
+        }
+        setStatus('running', 'Processing image… running frozen model');
+        if (button) {
+          button.textContent = 'Running…';
+          button.disabled = true;
+        }
+      });
+    }
+  })();
+</script>
+</body>
+</html>
