@@ -1,10 +1,5 @@
 # Code for "Explanation Reliability Beyond Diagnostic Accuracy in Dermoscopic Skin-Lesion Classification"
 
-This is the analysis code accompanying the manuscript submitted to *JID Innovations*
-(Das, Gamit, Paikaraya, Tanisha, Tank). It reproduces every number, table and
-figure in the manuscript from the two public datasets referenced below. No
-proprietary or patient-identifiable data is used.
-
 ## Repository structure
 
 ```
